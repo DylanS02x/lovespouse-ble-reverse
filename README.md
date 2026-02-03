@@ -236,9 +236,9 @@ Running our script requires root privileges.
 
 ### Security Implications
 
-- Most entry-level Bluetooth sex toys are built on the same model and share this vulnerability. 
+Most entry-level Bluetooth sex toys are built on the same model and share this vulnerability. 
 
-- This protocol has been publicly reverse-engineered for at least two years, yet companies manufacturing these adult toys have not issued any security patches or design changes. 
+This protocol has been publicly reverse-engineered for at least two years, yet companies manufacturing these adult toys have not issued any security patches or design changes. 
 
 ### Privacy Concerns
 Advertising packets are unencrypted and broadcast on BLE channels 37, 38, and 39. Anyone with a Bluetooth sniffer can:
@@ -251,4 +251,5 @@ Advertising packets are unencrypted and broadcast on BLE channels 37, 38, and 39
 If this script is executed in a location where multiple vulnerable vibrating egg are present, all devices within range will simultaneously respond to the selected mode. 
 
 The lack of device-specific addressing means a single broadcast packet controls every listening device indiscriminately.
+
 **This represents a privacy and security risk for users of these devices.**
